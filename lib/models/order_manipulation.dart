@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-class OrderInsert {
+class OrderManipulation {
   int id;
   String name;
   double price;
@@ -10,8 +10,10 @@ class OrderInsert {
   int views;
   int total_order;
   int total_revenue;
+  String status;
+  DateTime date_created;
 
-  OrderInsert(
+  OrderManipulation(
   {
     @required this.id,
     @required this.name,
@@ -21,7 +23,8 @@ class OrderInsert {
     @required this.url,
     @required this.views,
     @required this.total_order,
-    @required this.total_revenue
+    @required this.total_revenue,
+    @required this.status
 }
       );
 
@@ -35,7 +38,8 @@ class OrderInsert {
      "url":url,
      "views":views,
      "total_order": total_order,
-     "toatal_revenue": total_revenue
+     "total_revenue": total_revenue,
+     "status": status
    };
  }
 

@@ -2,7 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_web_api/models/order_insert.dart';
+import 'package:flutter_web_api/models/order_manipulation.dart';
 import 'package:get_it/get_it.dart';
 
 import '../services/order_service.dart';
@@ -34,7 +34,7 @@ class _OrderModifyState extends State<OrderModify> {
   TextEditingController _viewsController = TextEditingController();
   TextEditingController _orderController = TextEditingController();
   TextEditingController _revenueController = TextEditingController();
-
+  TextEditingController _statusController =TextEditingController();
 
   @override
   void initState() {
@@ -49,11 +49,12 @@ class _OrderModifyState extends State<OrderModify> {
         _nameController.text = order.name;
         _priceController.text = order.price.toString();
         _descriptionController.text = order.description;
-        _imageController.text = order.image;
+        _imageController.text = "https://blackwebapidemo-staticfiles.s3.amazonaws.com/media/minion.png";
         _urlController.text = order.url;
         _viewsController.text = order.views.toString();
         _orderController.text = order.total_order.toString();
         _revenueController.text = order.total_revenue.toString();
+        _statusController.text = order.status;
       });
       super.initState();
     }
@@ -164,27 +165,12 @@ class _OrderModifyState extends State<OrderModify> {
   }
   Widget _buildStatus(){
 
-    return Row(
-      children: <Widget>[
-        Text('Status',
-          style: TextStyle(fontSize: 16),),
-        SizedBox(width: 50,),
-        DropdownButton<String> (
-          items: _statusOptions.map((String dropDownStringItem){
-            return DropdownMenuItem<String>(
-              value: dropDownStringItem,
-              child:
-              Text(dropDownStringItem),
-            );
 
-          }).toList(),
+    return TextFormField(
+      controller: _statusController,
+      decoration: InputDecoration(labelText: 'Status'),
+      keyboardType: TextInputType.text,
 
-          onChanged: (String newValueSelected){
-            dropDownItemSelected(newValueSelected);
-          },
-          value: _currentStatusSelected,
-        ),
-      ],
     );
   }
 
@@ -222,7 +208,7 @@ class _OrderModifyState extends State<OrderModify> {
 
                   }
                   else{
-                    final order = OrderInsert(
+                    final order = OrderManipulation(
                       id: int.parse(_idController.text),
                       name: _nameController.text,
                       price: double.parse(_priceController.text),
@@ -232,6 +218,7 @@ class _OrderModifyState extends State<OrderModify> {
                       views: int.parse(_viewsController.text),
                       total_order:int.parse(_orderController.text) ,
                       total_revenue: int.parse(_revenueController.text),
+                      status: _statusController.text
 
                     );
                     final result = await orderService.createOrder(order);

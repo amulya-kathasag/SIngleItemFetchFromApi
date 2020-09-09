@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_web_api/models/api_response.dart';
 import 'package:flutter_web_api/models/order.dart';
 import 'package:flutter_web_api/models/order_for_listing.dart';
-import 'package:flutter_web_api/models/order_insert.dart';
+import 'package:flutter_web_api/models/order_manipulation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/order_for_listing.dart';
@@ -58,13 +58,32 @@ class OrderService {
         .catchError((_) => APIResponse<Order>(error: true, errorMessage: 'Some error occurred, caught in catch block'));
   }
 
-  Future<APIResponse<bool>> createOrder(OrderInsert item) async {
-    print('creating orderr from API ... *****************');
-    return http.post(API, headers: headers,body: json.encode(item.toJson())).then((data) {
+  Future<APIResponse<bool>> createOrder(OrderManipulation item) async {
+    print('creating  a orderr ... *****************');
+    return http.post(API+'/', headers: headers,body: json.encode(item.toJson())).then((data) {
       print( " ${data.statusCode}  ... *****************");
       print("${data.body}...........................");
       if (data.statusCode == 201) { // checking the status code
       print( "${data.statusCode}........................");
+
+
+
+
+        return APIResponse<bool>(data: true);
+      }
+      return APIResponse<bool>(error: true, errorMessage: 'Some error occurred');
+    })
+        .catchError((_) => APIResponse<bool>(error: true, errorMessage: 'Some error occurred, caught in catch block'));
+  }
+
+  
+  Future<APIResponse<bool>> updateOrder(String id, OrderManipulation item) async {
+    print('creating  a orderr ... *****************');
+    return http.post(API+'/'+ id, headers: headers,body: json.encode(item.toJson())).then((data) {
+      print( " ${data.statusCode}  ... *****************");
+      print("${data.body}...........................");
+      if (data.statusCode == 204) { // checking the status code
+        print( "${data.statusCode}........................");
 
 
 
