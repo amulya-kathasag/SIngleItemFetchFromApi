@@ -70,6 +70,33 @@ class _OrderListState extends State<OrderList> {
                     final result  = await showDialog(
                         context: context,
                         builder: (_) => OrderDelete());
+                    
+                    if(result){
+
+                      var message;
+                      final deleteResult = await service.deleteOrder(_apiResponse.data[index].id.toString());
+                      if(deleteResult != null && deleteResult.data == true){
+                        message = 'The product is deleted successfully';
+                      }
+                      else{
+                        message =  deleteResult ?.errorMessage ?? 'An error occured';
+                      }
+
+                      showDialog(context: context,
+                          builder: (_) => AlertDialog(
+                              title: Text('Done'),
+                              content: Text(message),
+                              actions:<Widget>[
+                                FlatButton(
+                                  child: Text('OK'),
+                                  onPressed: (){
+                                    Navigator.of(context).pop();
+                                  },
+                                )
+                              ]
+                          ));
+                      return deleteResult?.data ?? false;
+                    }
                     return result;
                   },
                   background: Container(
@@ -85,7 +112,10 @@ class _OrderListState extends State<OrderList> {
                     ),
                     subtitle: Text('Rs. ' + _apiResponse.data[index].price.toString()),
                     onTap: (){
-                      Navigator.of(context).push(MaterialPageRoute(builder : (_) => OrderModify(orderId: _apiResponse.data[index].id.toString())));
+                      Navigator.of(context).push(MaterialPageRoute(builder : (_) => OrderModify(orderId: _apiResponse.data[index].id.toString()))).then((data)
+                      {
+                        _fetchOrders();
+                      });
                     },
                   ),
                 );

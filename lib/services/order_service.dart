@@ -78,8 +78,26 @@ class OrderService {
 
   
   Future<APIResponse<bool>> updateOrder(String id, OrderManipulation item) async {
-    print('creating  a orderr ... *****************');
-    return http.post(API+'/'+ id, headers: headers,body: json.encode(item.toJson())).then((data) {
+    print('updating a orderr ... *****************...................');
+    return http.put(API+'/'+ id+'/', headers: headers,body: json.encode(item.toJson())).then((data) {
+      print( " ${data.statusCode}  ... *****************");
+      print("${data.body}...........................");
+      if (data.statusCode == 204) { // checking the status code
+        print( "${data.statusCode}........................");
+
+
+
+
+        return APIResponse<bool>(data: true);
+      }
+      return APIResponse<bool>(error: true, errorMessage: 'Some error occurred');
+    })
+        .catchError((_) => APIResponse<bool>(error: true, errorMessage: 'Some error occurred, caught in catch block'));
+  }
+
+  Future<APIResponse<bool>> deleteOrder(String id) async {
+    print('deleting a orderr ... *****************...................');
+    return http.delete(API+'/'+ id+'/', headers: headers).then((data) {
       print( " ${data.statusCode}  ... *****************");
       print("${data.body}...........................");
       if (data.statusCode == 204) { // checking the status code

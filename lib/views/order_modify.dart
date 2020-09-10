@@ -1,9 +1,18 @@
 import 'dart:core';
+import 'dart:io';
 
+import 'package:dio/dio.dart' as dio;
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_api/models/order_manipulation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:dio/src/multipart_file.dart';
+import 'package:http/src/multipart_file.dart';
+import 'package:path/path.dart';
 
 import '../services/order_service.dart';
 import 'package:flutter_web_api/models/order.dart';
@@ -29,7 +38,7 @@ class _OrderModifyState extends State<OrderModify> {
   TextEditingController _nameController = TextEditingController();
   TextEditingController _priceController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
-  TextEditingController _imageController = TextEditingController();
+  //TextEditingController _imageController = TextEditingController();
   TextEditingController _urlController = TextEditingController();
   TextEditingController _viewsController = TextEditingController();
   TextEditingController _orderController = TextEditingController();
@@ -49,7 +58,7 @@ class _OrderModifyState extends State<OrderModify> {
         _nameController.text = order.name;
         _priceController.text = order.price.toString();
         _descriptionController.text = order.description;
-        _imageController.text = "https://blackwebapidemo-staticfiles.s3.amazonaws.com/media/minion.png";
+        //_imageController.text = "https://blackwebapidemo-staticfiles.s3.amazonaws.com/media/minion.png";
         _urlController.text = order.url;
         _viewsController.text = order.views.toString();
         _orderController.text = order.total_order.toString();
@@ -63,12 +72,12 @@ class _OrderModifyState extends State<OrderModify> {
   String _name;
   double _price;
   String _description;
-  String _image;
   String _url;
   int _views;
   int _total_order;
   int _total_revenue;
   String _status;
+  File _image;
   var _statusOptions =['ACTIVE','NOT ACTIVE'];
   var _currentStatusSelected = 'ACTIVE';
 
@@ -114,11 +123,55 @@ class _OrderModifyState extends State<OrderModify> {
     );
   }
   Widget _buildImageField(){
-    return TextFormField(
-      controller: _imageController,
-      decoration: InputDecoration(labelText: 'Image'),
-      keyboardType: TextInputType.text,
 
+    return RaisedButton(
+      child: Text('Upload Image',style: TextStyle(
+        color: Colors.black
+      ),),
+
+      color: Colors.white,
+      onPressed: () async{
+
+        //Dio dio = new Dio();
+        var imagePicker = await ImagePicker.pickImage(source: ImageSource.gallery );
+        if(imagePicker != null){
+          print("not null---------------------------------------------------");
+          setState(() {
+            _image = imagePicker;
+          });
+        }
+        try{/*
+              String filename = _image.path.split('/').last:
+        FormData formData = new FormData.fromMap({
+          "image":
+        await MultipartFile.fromFile(_image.path,filename: filename,
+        contentType:new MediaType('image','png')),
+        "type": "image/png"
+        }) ;
+              Response response = await dio.post("path",data: formData,options: Options(
+        headers:{
+          //"accept":"*/
+        //"Content-Type":"multipart/form-data"
+
+       // }
+       // ));
+          uploadFile() async {
+            var postUri = Uri.parse("<APIUrl>");
+            var request = new MultipartRequest("POST", postUri);
+            request.fields['user'] = 'blah';
+            request.files.add(new MultipartFile.fromBytes('file', await File.fromUri("<path/to/file").readAsBytes(), contentType: new MediaType('image', 'jpeg')))
+            request.send().then((response) {
+              if (response.statusCode == 200) print("Uploaded!");
+            });
+          }
+
+        }
+        catch(e){
+            print(e);
+        }
+
+
+      },
     );
   }
   Widget _buildUrlField(){
@@ -177,73 +230,105 @@ class _OrderModifyState extends State<OrderModify> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar( title: Text(isEditing ?'Edit Product' : 'Create Product'),),
       body:
       Container(
         padding: const EdgeInsets.all(24),
         child: Form(
+        child: SingleChildScrollView(
 
-          child: Column(
 
-            children: <Widget>[
-              _buildIdField(),
-              _buildNameField(),
-              _buildPriceField(),
-              _buildDescriptionField(),
-              _buildImageField(),
-              _buildUrlField(),
-              _buildViewsField(),
-              _buildOrderField(),
-              _buildRevenueField(),
-              SizedBox(height: 5),
-              _buildStatus(),
-              SizedBox(height: 15),
-              RaisedButton(
-                child: Text('Post', style: TextStyle(
-                  color: Colors.white,
-                ),),
-                onPressed: ()async{
-                  if(isEditing){
+            child: Column(
 
-                  }
-                  else{
-                    final order = OrderManipulation(
-                      id: int.parse(_idController.text),
-                      name: _nameController.text,
-                      price: double.parse(_priceController.text),
-                      description: _descriptionController.text,
-                      image:_imageController.text,
-                      url: _urlController.text,
-                      views: int.parse(_viewsController.text),
-                      total_order:int.parse(_orderController.text) ,
-                      total_revenue: int.parse(_revenueController.text),
-                      status: _statusController.text
+              children: <Widget>[
+                _buildIdField(),
+                _buildNameField(),
+                _buildPriceField(),
+                _buildDescriptionField(),
+                _buildImageField(),
+                _buildUrlField(),
+                _buildViewsField(),
+                _buildOrderField(),
+                _buildRevenueField(),
+                _buildStatus(),
+                SizedBox(height: 15),
+                RaisedButton(
+                  child: Text('Post', style: TextStyle(
+                    color: Colors.white,
+                  ),),
+                  onPressed: ()async{
+                    if(isEditing){
 
-                    );
-                    final result = await orderService.createOrder(order);
+                      final order = OrderManipulation(
+                          id: int.parse(_idController.text),
+                          name: _nameController.text,
+                          price: double.parse(_priceController.text),
+                          description: _descriptionController.text,
+                          url: _urlController.text,
+                          views: int.parse(_viewsController.text),
+                          total_order:int.parse(_orderController.text) ,
+                          total_revenue: int.parse(_revenueController.text),
+                          status: _statusController.text,
 
-                    final title = 'Done';
-                    final text = result.error ? (result.errorMessage ?? 'An error occured'): 'Your product is created';
 
-                    showDialog(context: context,
-                    builder: (_) => AlertDialog(
-                      title: Text(title),
-                      content: Text(text),
-                      actions:<Widget>[
-                        FlatButton(
-                          child: Text('OK'),
-                          onPressed: (){
-                            Navigator.of(context).pop();
-                          },
-                        )
-                      ]
-                    ));
-                  }
-                },
-              )
+                      );
+                      final result = await orderService.updateOrder(widget.orderId, order);
 
-            ],
+                      final title = 'Done';
+                      final text = result.error ? (result.errorMessage ?? 'An error occured'): 'Your product is updated';
+
+                      showDialog(context: context,
+                          builder: (_) => AlertDialog(
+                              title: Text(title),
+                              content: Text(text),
+                              actions:<Widget>[
+                                FlatButton(
+                                  child: Text('OK'),
+                                  onPressed: (){
+                                    Navigator.of(context).pop();
+                                  },
+                                )
+                              ]
+                          ));
+                    }
+                    else{
+                      final order = OrderManipulation(
+                        id: int.parse(_idController.text),
+                        name: _nameController.text,
+                        price: double.parse(_priceController.text),
+                        description: _descriptionController.text,
+                        url: _urlController.text,
+                        views: int.parse(_viewsController.text),
+                        total_order:int.parse(_orderController.text) ,
+                        total_revenue: int.parse(_revenueController.text),
+                        status: _statusController.text
+
+                      );
+                      final result = await orderService.createOrder(order);
+
+                      final title = 'Done';
+                      final text = result.error ? (result.errorMessage ?? 'An error occured'): 'Your product is created';
+
+                      showDialog(context: context,
+                      builder: (_) => AlertDialog(
+                        title: Text(title),
+                        content: Text(text),
+                        actions:<Widget>[
+                          FlatButton(
+                            child: Text('OK'),
+                            onPressed: (){
+                              Navigator.of(context).pop();
+                            },
+                          )
+                        ]
+                      ));
+                    }
+                  },
+                )
+
+              ],
+            ),
           ),
         ),
 
